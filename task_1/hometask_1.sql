@@ -53,3 +53,7 @@ select *
 from match
 limit 20;
 
+
+select account_id,
+       match
+
