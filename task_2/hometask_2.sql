@@ -81,3 +81,50 @@ inner join hero_names on hero_names.hero_id = cte.hero_id
 
 --Что в итоге? Как видно по последним 3-м запросам видно, спектра занимает топы. Не случайно её или банят или пикают почти в каждой
 --рейтинговой игре.
+
+
+-----------------
+select second_pilot_id from Flights where (YEAR(flight_dt) = 2021) and (MONTH(flight_dt) = 8)
+-----------------
+
+-----------------
+with cte_1 as
+    (
+        select  firs_pilot_id,
+                count(Flights.flight_id) as count_flights_first_pilot
+        from Flights
+            inner join Planes on Flights.plane_id = Planes.plane_id
+            where Planes.cargo_flg = 1
+        group by first_pilot_id
+    )
+with cte_2 as
+    (
+        select  second_pilot_id,
+                count(Flights.flight_id) as count_flights_second_pilot
+        from Flights
+            inner join Planes on Flights.plane_id = Planes.plane_id
+            where Planes.cargo_flg = 1
+        group by second_pilot_id
+    )
+select name,
+       pilot_id
+from Pilots
+left join cte_1 on Pilots.pilot_id = cte_1.first_pilot_id
+left join cte_2 on Pilots.pilot_id = cte_2.second_pilot_id
+where (Pilots.age > 45) and (count_flights_first_pilot > 30) and (count_flights_second_pilot > 30)
+
+-----------------
+with cte as
+    (
+        select first_pilot_id,
+               sum(quantity) as count_passengers
+        from Flights
+            inner join Planes on Flights.plane_id = Planes.plane_id
+            where (Planes.cargo_flg = 0) and (YEAR(Flights.flight_dt) = 2021)
+        group by first_pilot_id
+    )
+
+select first_pilot_id,
+       rank () over (order by count_passengers) as rank_rate
+from cte
+limit 10
